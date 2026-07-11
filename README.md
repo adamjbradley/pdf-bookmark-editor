@@ -4,6 +4,28 @@ Open a PDF, add/rename/remove **outline bookmarks** (the collapsible table of
 contents that shows in the sidebar of every PDF reader), and save a new copy.
 Everything runs locally in the browser — the PDF never leaves your machine.
 
+## Install
+
+### Easiest — one zip, three clicks
+
+1. **[⬇ Download the latest release zip](https://github.com/adamjbradley/pdf-bookmark-editor/releases/latest)** and unzip it into a folder you'll keep (e.g. `~/extensions/pdf-bookmark-editor/`).
+2. Open `chrome://extensions/` (or `edge://extensions/`) → flip **Developer mode** on.
+3. Click **Load unpacked** → pick the unzipped folder → click the extension icon → **Open editor** → drop a PDF.
+
+There's also a friendly landing page with these steps + screenshots at
+**<https://adamjbradley.github.io/pdf-bookmark-editor/>** (once GitHub Pages is enabled on this repo, see [Enabling Pages](#enabling-github-pages) below).
+
+### For developers — load unpacked from source
+
+```bash
+git clone https://github.com/adamjbradley/pdf-bookmark-editor
+cd pdf-bookmark-editor
+# vendor/ and icons/ are committed, so nothing to build; just Load unpacked.
+```
+
+Then the same three steps above, pointing Load unpacked at the cloned directory.
+
+
 Manifest V3, no service worker, only the `storage` permission, no host
 permissions.
 
@@ -13,23 +35,32 @@ permissions.
   `/Outlines` dictionary with `/PageMode /UseOutlines` so bookmarks appear
   automatically when the saved file is opened in any PDF reader.
 
-## Load unpacked (dev)
+## Rebuild vendor libs / icons from source
+
+The committed `vendor/` and `icons/` are ready to use, so most contributors
+don't need this. Only run these if you're bumping PDF.js or pdf-lib, or
+tweaking the icon design:
 
 ```bash
-cd chromeExtension
 npm install
-npm run vendor          # populate vendor/pdfjs/ and vendor/pdf-lib/
+npm run vendor          # copy pdfjs-dist + pdf-lib runtimes into vendor/
 npm run icons           # regenerate the 16/32/48/128 PNG icons
 ```
 
-Then in the browser:
+## Cut a new release
 
-1. Open `chrome://extensions` (or `edge://extensions`).
-2. Toggle **Developer mode**.
-3. Click **Load unpacked** and pick the `chromeExtension/` directory.
-4. Click the extension's toolbar icon → **Open editor** → drop a PDF.
+```bash
+# bump manifest.json + package.json version, then:
+git tag v0.1.1
+git push --tags
+```
 
-## Build a store-ready zip
+The `.github/workflows/release.yml` workflow runs `npm ci`, runs `npm run
+verify` (outline round-trip), packages the zip, and attaches it to a new
+GitHub Release. The tag has to match `manifest.json`'s `version` — the
+workflow refuses to release if they diverge.
+
+Or build the zip locally without cutting a release:
 
 ```bash
 npm run build           # vendor + icons + package → dist/pdf-bookmark-editor-<version>.zip
@@ -40,6 +71,22 @@ dashboard](https://chrome.google.com/webstore/devconsole/) or the [Edge
 Add-ons partner center](https://partner.microsoft.com/dashboard/microsoftedge).
 The zip contains only the runtime files (manifest, icons, source, vendor) —
 no `node_modules`, no build scripts, no `.map` files.
+
+## Enabling GitHub Pages
+
+The `docs/` directory is a ready-to-serve one-page install site (plus a
+plain-HTML privacy policy at `docs/PRIVACY.html`, which is the URL to give
+the Chrome Web Store submission form). Turn it on once:
+
+1. **Settings → Pages** in this repo.
+2. **Source:** *Deploy from a branch*.
+3. **Branch:** `main` / `docs`.
+4. Save.
+
+GitHub will publish it at `https://adamjbradley.github.io/pdf-bookmark-editor/`
+within a minute. The landing page's download button fetches the latest
+GitHub release asset at runtime, so it always points at the newest zip
+without redeploying.
 
 ## Verify the outline writer
 

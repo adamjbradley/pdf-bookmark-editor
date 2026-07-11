@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Verify outline writer round-trip
+        run: npm run verify
+
+      - name: Sanity-check tag ↔ manifest version
+        run: |
+          TAG="${GITHUB_REF##refs/tags/v}"
+          MANIFEST=$(node -p "require('./manifest.json').version")
+          echo "tag=$TAG manifest=$MANIFEST"
+          if [ "$TAG" != "$MANIFEST" ]; then
+            echo "::error::Tag v$TAG does not match manifest.json version $MANIFEST"
+            exit 1
+          fi
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Create GitHub Release with the zip attached
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/pdf-bookmark-editor-*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            ## Install (30 seconds)
+
+            1. Download **pdf-bookmark-editor-${{ github.ref_name }}.zip** below and unzip it into a folder you'll keep (e.g. `~/extensions/pdf-bookmark-editor/`).
+            2. Open [`chrome://extensions/`](chrome://extensions/) (or `edge://extensions/`) and flip **Developer mode** on.
+            3. Click **Load unpacked** and pick the unzipped folder.
+            4. Click the extension icon → **Open editor** → drop in a PDF.
+
+            All processing is local — nothing is uploaded. See
+            [PRIVACY.md](https://github.com/${{ github.repository }}/blob/main/PRIVACY.md).

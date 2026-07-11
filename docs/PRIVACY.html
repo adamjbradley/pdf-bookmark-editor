@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy — PDF Bookmark Editor</title>
+<meta name="description" content="Privacy policy for the PDF Bookmark Editor Chrome/Edge extension. Nothing is uploaded, no analytics, no tracking.">
+<link rel="icon" type="image/png" href="../icons/icon-128.png">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1c;
+    --muted: #66666c;
+    --accent: #2f6feb;
+    --border: #e2e2e5;
+    --panel: #f5f5f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f11;
+      --fg: #f2f2f5;
+      --muted: #9a9aa0;
+      --accent: #5a8dfa;
+      --border: #2a2a30;
+      --panel: #1a1a1e;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  code {
+    font: 0.92em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .muted { color: var(--muted); }
+  h2 { margin: 32px 0 8px; font-size: 1.15rem; }
+  ul, ol { padding-left: 22px; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+  nav a { margin-right: 12px; }
+</style>
+</head>
+<body>
+<main>
+<nav><a href="./">← Back to install page</a></nav>
+<h1>Privacy policy</h1>
+<p class="muted">Effective date: 2026-07-11</p>
+
+<h2>Summary</h2>
+<p>PDF Bookmark Editor is a <strong>local-only</strong> browser extension. It does not collect, transmit, or store any personal information, browsing history, or document content on any remote server. It has no analytics, no telemetry, no ads, and no third-party trackers.</p>
+
+<h2>What data the extension handles</h2>
+<ul>
+  <li><strong>PDF files you open in the editor.</strong> These are read from disk into memory by your browser and processed entirely within the extension's own tab. They are never sent over the network.</li>
+  <li><strong>User preferences</strong> (e.g. the last zoom level and sidebar state). These are stored using the browser's built-in <code>chrome.storage.local</code> API on your device. They are not synced anywhere unless you enable the browser's own settings sync, which is outside this extension's control.</li>
+</ul>
+
+<h2>What data the extension does <em>not</em> collect</h2>
+<ul>
+  <li>Your browsing history</li>
+  <li>Any identifiers (device ID, IP address, cookies)</li>
+  <li>The names or contents of any PDF you open</li>
+  <li>The bookmarks you create</li>
+  <li>Any usage metrics (opens, clicks, saves)</li>
+</ul>
+
+<h2>Permissions rationale</h2>
+<p>The extension requests exactly one permission:</p>
+<ul>
+  <li><strong><code>storage</code></strong> — to remember your zoom and sidebar preferences between sessions.</li>
+</ul>
+<p>It does <strong>not</strong> request:</p>
+<ul>
+  <li>Access to any website (<code>host_permissions</code>)</li>
+  <li>Access to your tabs, browsing history, cookies, downloads, or any other browser data</li>
+  <li>The ability to run in the background (no service worker)</li>
+</ul>
+
+<h2>Third-party code</h2>
+<p>The extension bundles two open-source libraries — Mozilla PDF.js and <code>pdf-lib</code> — for viewing and modifying PDFs. Both run inside the extension's own tab and make no network requests. No data leaves your browser.</p>
+
+<h2>Contact</h2>
+<p>Questions? <a href="https://github.com/adamjbradley/pdf-bookmark-editor/issues">File an issue on GitHub</a> or contact the developer via the email address on the store listing.</p>
+
+<hr>
+<p class="muted">This is a plain, static privacy page — no cookies, no scripts, no third parties.</p>
+</main>
+</body>
+</html>

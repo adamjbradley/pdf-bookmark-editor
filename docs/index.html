@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Bookmark Editor — Chrome/Edge extension</title>
+<meta name="description" content="Open a PDF, add/rename/delete outline bookmarks, save a new copy. Local-only Chrome and Edge extension.">
+<meta property="og:title" content="PDF Bookmark Editor">
+<meta property="og:description" content="Open a PDF, add or edit outline bookmarks, save a new copy. Local-only.">
+<link rel="icon" type="image/png" href="../icons/icon-128.png">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --panel: #f5f5f7;
+    --fg: #1a1a1c;
+    --muted: #66666c;
+    --accent: #2f6feb;
+    --accent-fg: #ffffff;
+    --border: #e2e2e5;
+    --hover: rgba(0,0,0,0.04);
+    --shadow: 0 10px 30px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f11;
+      --panel: #1a1a1e;
+      --fg: #f2f2f5;
+      --muted: #9a9aa0;
+      --accent: #5a8dfa;
+      --border: #2a2a30;
+      --hover: rgba(255,255,255,0.05);
+      --shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font: 0.92em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  header.hero {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 20px;
+    align-items: center;
+    padding: 40px 0 24px;
+  }
+  header.hero img {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .tagline { color: var(--muted); margin: 0; font-size: 1.05rem; }
+  .cta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0 32px;
+  }
+  .btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 18px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--fg);
+    text-decoration: none !important;
+    transition: transform 0.08s ease, box-shadow 0.16s ease, background 0.16s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+  }
+  .btn strong {
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn small { opacity: 0.75; font-size: 0.85rem; }
+  .browsers { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  section { margin: 40px 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin: 0 0 12px;
+    letter-spacing: -0.005em;
+  }
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+  }
+  ol.steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  ol.steps li::before {
+    content: counter(step);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  ol.steps li .body { display: block; }
+  ol.steps li .body strong { display: block; margin-bottom: 2px; }
+  ol.steps li .body span { color: var(--muted); font-size: 0.94rem; }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .feature {
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .feature h3 { margin: 0 0 4px; font-size: 0.98rem; }
+  .feature p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+  .privacy {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .privacy strong { color: var(--fg); }
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .cta { grid-template-columns: 1fr; }
+    header.hero { grid-template-columns: 72px 1fr; gap: 14px; padding-top: 24px; }
+    header.hero img { width: 72px; height: 72px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img src="../icons/icon-128.png" alt="PDF Bookmark Editor icon" width="96" height="96">
+    <div>
+      <h1>PDF Bookmark Editor</h1>
+      <p class="tagline">Open a PDF, add or edit outline bookmarks, save a new copy — right in your browser.</p>
+    </div>
+  </header>
+
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/adamjbradley/pdf-bookmark-editor/releases/latest/download/pdf-bookmark-editor-latest.zip" id="download-btn" download>
+      <strong>⬇ Download extension</strong>
+      <small id="download-caption">Latest release zip · Chrome &amp; Edge · Free · Open source</small>
+    </a>
+    <a class="btn" href="#install">
+      <strong>How to install →</strong>
+      <small>3 clicks, no store account needed while in dev-preview</small>
+    </a>
+  </div>
+  <p class="browsers">
+    Works on Chromium-based browsers: <strong>Chrome</strong>, <strong>Edge</strong>, <strong>Brave</strong>, <strong>Arc</strong>, <strong>Opera</strong>, <strong>Vivaldi</strong>. Requires Chrome 116+ or Edge 116+.
+  </p>
+
+  <section id="install">
+    <h2>Install in 30 seconds</h2>
+    <ol class="steps">
+      <li>
+        <div class="body">
+          <strong>Download &amp; unzip</strong>
+          <span>Grab <a href="https://github.com/adamjbradley/pdf-bookmark-editor/releases/latest" target="_blank" rel="noopener">the latest release</a> and unzip it into a folder you'll keep (e.g. <code>~/extensions/pdf-bookmark-editor/</code>). Don't delete the folder — the browser reads from it on every launch.</span>
+        </div>
+      </li>
+      <li>
+        <div class="body">
+          <strong>Open the extensions page</strong>
+          <span>In Chrome, visit <code>chrome://extensions/</code>. In Edge, visit <code>edge://extensions/</code>. Toggle <strong>Developer mode</strong> in the top-right.</span>
+        </div>
+      </li>
+      <li>
+        <div class="body">
+          <strong>Load unpacked</strong>
+          <span>Click <strong>Load unpacked</strong> and pick the folder that contains <code>manifest.json</code>. Pin the extension to the toolbar → click the icon → <strong>Open editor</strong> → drop a PDF.</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="features">
+      <div class="feature">
+        <h3>Add &amp; edit outline bookmarks</h3>
+        <p>Nested bookmarks, rename in place, jump to page, delete branches.</p>
+      </div>
+      <div class="feature">
+        <h3>Bundled PDF.js viewer</h3>
+        <p>Renders any PDF right inside the extension. Zoom, page nav, keyboard shortcuts.</p>
+      </div>
+      <div class="feature">
+        <h3>Writes a real /Outlines dict</h3>
+        <p>Bookmarks show up in every reader — Chrome, Edge, Safari, Preview, Acrobat, Foxit, mobile.</p>
+      </div>
+      <div class="feature">
+        <h3>Local, always</h3>
+        <p>No uploads, no analytics, no login. Just <code>storage</code> permission for zoom preference.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="privacy">
+    <h2 style="margin-top:0">Privacy</h2>
+    <p>Nothing is uploaded, ever. The extension only asks for the <code>storage</code> permission to remember your zoom level between sessions. No host permissions, no service worker, no network access. Full policy: <a href="PRIVACY.html">PRIVACY</a>.</p>
+  </section>
+
+  <section>
+    <h2>Open source</h2>
+    <p>MIT licensed. Source at <a href="https://github.com/adamjbradley/pdf-bookmark-editor" target="_blank" rel="noopener">github.com/adamjbradley/pdf-bookmark-editor</a>. Bugs and feature requests welcome via <a href="https://github.com/adamjbradley/pdf-bookmark-editor/issues" target="_blank" rel="noopener">Issues</a>.</p>
+  </section>
+
+  <footer>
+    <span>© 2026 Adam Bradley · MIT</span>
+    <span><a href="https://github.com/adamjbradley/pdf-bookmark-editor">Source</a> · <a href="PRIVACY.html">Privacy</a></span>
+  </footer>
+</div>
+
+<script>
+// If a release exists, GitHub redirects
+// /releases/latest/download/<name> → /releases/download/<tag>/<name>.
+// The versioned filename is pdf-bookmark-editor-<version>.zip, so we can't
+// hardcode /download/pdf-bookmark-editor-latest.zip. Instead, look up the
+// latest release via the public API and rewrite the button to point at the
+// actual asset. If we can't reach the API or the repo has no releases yet, we
+// fall back to the /releases/latest page which shows the asset list.
+(async () => {
+  const btn = document.getElementById("download-btn");
+  const caption = document.getElementById("download-caption");
+  const fallback = "https://github.com/adamjbradley/pdf-bookmark-editor/releases/latest";
+  btn.href = fallback;
+  caption.textContent = "Loading latest release…";
+  try {
+    const res = await fetch(
+      "https://api.github.com/repos/adamjbradley/pdf-bookmark-editor/releases/latest",
+      { headers: { Accept: "application/vnd.github+json" } },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rel = await res.json();
+    const asset = (rel.assets || []).find((a) => a.name.endsWith(".zip"));
+    if (asset) {
+      btn.href = asset.browser_download_url;
+      caption.textContent = `${rel.tag_name} · ${asset.name} · ${(asset.size/1024).toFixed(0)} KB · Chrome & Edge`;
+    } else {
+      caption.textContent = "No release yet — clone or grab source from GitHub.";
+      btn.href = "https://github.com/adamjbradley/pdf-bookmark-editor";
+    }
+  } catch {
+    caption.textContent = "Open latest release on GitHub";
+  }
+})();
+</script>
+</body>
+</html>
