@@ -1,0 +1,74 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Bookmark Editor</title>
+<link rel="stylesheet" href="viewer.css">
+
+<div id="app" class="empty">
+  <header class="toolbar" role="toolbar" aria-label="Toolbar">
+    <button id="open-btn" class="btn" title="Open a PDF">Open PDF</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="prev-btn" class="btn" title="Previous page (←)" disabled>◀</button>
+    <span class="page-status">
+      <input id="page-num" type="number" min="1" value="1" aria-label="Page number">
+      <span> / <span id="page-count">–</span></span>
+    </span>
+    <button id="next-btn" class="btn" title="Next page (→)" disabled>▶</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button id="zoom-out" class="btn" title="Zoom out" disabled>−</button>
+    <span id="zoom-label" class="zoom-label">100%</span>
+    <button id="zoom-in" class="btn" title="Zoom in" disabled>+</button>
+    <span class="spacer"></span>
+    <button id="add-btn" class="btn accent" title="Add bookmark at current page" disabled>+ Bookmark</button>
+    <button id="save-btn" class="btn primary" title="Save modified PDF" disabled>Save PDF…</button>
+  </header>
+
+  <main class="stage">
+    <aside class="sidebar" aria-label="Bookmarks">
+      <div class="sidebar-header">
+        <h2>Bookmarks</h2>
+        <button id="collapse-all" class="link" type="button" hidden>collapse</button>
+      </div>
+      <ul id="outline" class="outline" role="tree" aria-label="PDF outline"></ul>
+      <div id="outline-empty" class="empty-hint">
+        No bookmarks yet. Open a PDF and click <b>+ Bookmark</b> to add one.
+      </div>
+    </aside>
+
+    <section class="viewport" id="viewport" tabindex="0" aria-label="PDF viewport">
+      <div id="drop-hint" class="drop-hint">
+        <div class="drop-hint-inner">
+          <div class="drop-icon" aria-hidden="true">📄</div>
+          <h3>Open or drop a PDF to get started</h3>
+          <p class="muted">Nothing is uploaded &mdash; the file is processed entirely in your browser.</p>
+          <button id="open-btn-2" class="btn primary">Choose PDF…</button>
+        </div>
+      </div>
+      <div id="pages" class="pages"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <input id="file-input" type="file" accept="application/pdf,.pdf" hidden>
+</div>
+
+<!-- Rename dialog -->
+<dialog id="rename-dialog">
+  <form method="dialog" class="dialog-form">
+    <h3 id="rename-title">Bookmark</h3>
+    <label>
+      Title
+      <input id="rename-input" type="text" required maxlength="512" autocomplete="off">
+    </label>
+    <label>
+      Page
+      <input id="rename-page" type="number" min="1" required>
+    </label>
+    <menu>
+      <button value="cancel" class="btn">Cancel</button>
+      <button id="rename-ok" value="ok" class="btn primary">Save</button>
+    </menu>
+  </form>
+</dialog>
+
+<script src="viewer.js" type="module"></script>

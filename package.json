@@ -1,0 +1,21 @@
+{
+  "name": "pdf-bookmark-editor",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Chrome/Edge MV3 extension for editing PDF outline bookmarks. Local-only, no telemetry.",
+  "type": "module",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "icons": "python3 scripts/generate-icons.py",
+    "package": "node scripts/package.mjs",
+    "build": "npm run vendor && npm run icons && npm run package",
+    "verify": "node scripts/verify-outline.mjs",
+    "e2e": "xvfb-run -a --server-args='-screen 0 1400x900x24' node scripts/e2e.mjs"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "~4.10.38",
+    "pdf-lib": "^1.17.1",
+    "adm-zip": "^0.5.16"
+  },
+  "license": "MIT"
+}
