@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*"
+  # Also lets you click "Run workflow" on the Actions tab to cut a release
+  # without pushing a tag from your laptop. Reads the version from
+  # manifest.json, creates the matching tag, and drives the rest of the job.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,6 +18,45 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute tag name
+        id: tag
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION=$(node -p "require('./manifest.json').version")
+            TAG="v${VERSION}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG=${TAG}" >> "$GITHUB_ENV"
+
+      - name: Sanity-check tag ↔ manifest.json version
+        run: |
+          MANIFEST=$(node -p "require('./manifest.json').version")
+          EXPECTED="v${MANIFEST}"
+          if [ "${TAG}" != "${EXPECTED}" ]; then
+            echo "::error::Tag ${TAG} does not match manifest.json version (${EXPECTED}). Bump manifest.json first."
+            exit 1
+          fi
+
+      - name: Create + push tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists on origin. Bump manifest.json first, or delete the existing tag/release."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "${TAG}"
+          git push origin "${TAG}"
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -27,29 +70,21 @@ jobs:
       - name: Verify outline writer round-trip
         run: npm run verify
 
-      - name: Sanity-check tag ↔ manifest version
-        run: |
-          TAG="${GITHUB_REF##refs/tags/v}"
-          MANIFEST=$(node -p "require('./manifest.json').version")
-          echo "tag=$TAG manifest=$MANIFEST"
-          if [ "$TAG" != "$MANIFEST" ]; then
-            echo "::error::Tag v$TAG does not match manifest.json version $MANIFEST"
-            exit 1
-          fi
-
       - name: Package extension
         run: npm run package
 
       - name: Create GitHub Release with the zip attached
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
           files: dist/pdf-bookmark-editor-*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
             ## Install (30 seconds)
 
-            1. Download **pdf-bookmark-editor-${{ github.ref_name }}.zip** below and unzip it into a folder you'll keep (e.g. `~/extensions/pdf-bookmark-editor/`).
+            1. Download **pdf-bookmark-editor-${{ steps.tag.outputs.version }}.zip** below and unzip it into a folder you'll keep (e.g. `~/extensions/pdf-bookmark-editor/`).
             2. Open [`chrome://extensions/`](chrome://extensions/) (or `edge://extensions/`) and flip **Developer mode** on.
             3. Click **Load unpacked** and pick the unzipped folder.
             4. Click the extension icon → **Open editor** → drop in a PDF.
