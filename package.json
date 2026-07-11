@@ -10,7 +10,9 @@
     "package": "node scripts/package.mjs",
     "build": "npm run vendor && npm run icons && npm run package",
     "verify": "node scripts/verify-outline.mjs",
-    "e2e": "xvfb-run -a --server-args='-screen 0 1400x900x24' node scripts/e2e.mjs"
+    "e2e": "xvfb-run -a --server-args='-screen 0 1400x900x24' node scripts/e2e.mjs",
+    "screenshots": "xvfb-run -a --server-args='-screen 0 1400x900x24' node scripts/capture-store-screenshots.mjs",
+    "promo-tiles": "python3 scripts/generate-promo-tiles.py"
   },
   "devDependencies": {
     "pdfjs-dist": "~4.10.38",
