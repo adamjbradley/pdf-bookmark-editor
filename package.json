@@ -1,7 +1,7 @@
 {
   "name": "pdf-bookmark-editor",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Chrome/Edge MV3 extension for editing PDF outline bookmarks. Local-only, no telemetry.",
   "type": "module",
   "scripts": {
